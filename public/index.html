@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Derivadas e integrales</title>
+<meta name="description" content="Calculadora online de derivadas e integrales, indefinidas y definidas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+  /* Hoja cuadriculada, birome azul. */
+  :root {
+    --paper: #f6f8fc;
+    --grid: #dde5f1;
+    --field: #ffffff;
+    --text: #1f242d;
+    --muted: #586174;
+    --ink: #1d3fb8;
+    --on-ink: #ffffff;
+    --red: #b3261e;
+    --sans: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0f1626;
+      --grid: #1a2540;
+      --field: #141d33;
+      --text: #e8edf7;
+      --muted: #9aa6bd;
+      --ink: #94b4ff;
+      --on-ink: #0f1626;
+      --red: #ff9a92;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0;
+    font: 400 1.0625rem/1.55 var(--sans);
+    color: var(--text);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 4.5rem) 1rem 4rem;
+  }
+
+  h1 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(2.25rem, 8vw, 3.9rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+  }
+  .lead { margin: 0 0 2.25rem; max-width: 32rem; color: var(--muted); }
+
+  fieldset { margin: 0 0 1.25rem; padding: 0; border: 0; min-width: 0; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* Selector de operación */
+  .seg {
+    display: flex;
+    background: var(--field);
+    border: 1.5px solid var(--text);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg > div { position: relative; flex: 1; }
+  .seg > div + div { border-left: 1.5px solid var(--text); }
+  .seg input {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    margin: 0; opacity: 0; cursor: pointer;
+  }
+  .seg label {
+    display: block; padding: 0.75rem 0.5rem; text-align: center;
+    font-weight: 600; line-height: 1.25; pointer-events: none;
+  }
+  .seg input:checked + label { background: var(--ink); color: var(--on-ink); }
+  .seg input:focus-visible + label { outline: 3px solid var(--text); outline-offset: -5px; }
+
+  /* Función */
+  .fx {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 0 0 1rem; padding: 0.3rem 0.9rem;
+    background: var(--field);
+    border: 1.5px solid var(--text);
+    border-radius: 10px;
+  }
+  .fx:focus-within { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .fx > span { font: 500 1.2rem var(--mono); color: var(--muted); white-space: nowrap; }
+  .fx input {
+    flex: 1; min-width: 0; padding: 0.6rem 0;
+    font: 500 1.35rem var(--mono); color: var(--text);
+    background: transparent; border: 0; outline: 0;
+  }
+
+  /* Límites y orden */
+  .opts { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; margin: 0 0 1.5rem; }
+  .opt { display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 600; }
+  .opt input {
+    width: 7.5rem; padding: 0.5rem 0.7rem;
+    font: 500 1.05rem var(--mono); color: var(--text);
+    background: var(--field); border: 1.5px solid var(--text); border-radius: 8px;
+  }
+  .opt input[type="number"] { width: 4.75rem; }
+  .opt input:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+  .go {
+    padding: 0.8rem 1.8rem;
+    font: 700 1.1rem var(--sans); color: var(--on-ink);
+    background: var(--ink); border: 0; border-radius: 10px; cursor: pointer;
+  }
+  .go:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  .go:disabled { opacity: 0.6; cursor: progress; }
+
+  /* Ejemplos */
+  .examples { margin: 2rem 0 0; }
+  .examples p { margin: 0 0 0.6rem; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0; list-style: none; }
+  .chip {
+    padding: 0.4rem 0.75rem;
+    font: 400 0.95rem var(--sans); color: var(--text);
+    background: var(--field); border: 1.5px solid var(--muted); border-radius: 999px; cursor: pointer;
+  }
+  .chip code { font: 500 0.9rem var(--mono); color: var(--ink); }
+  .chip:hover { border-color: var(--ink); }
+  .chip:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+  /* Resultado */
+  .result { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--ink); }
+  .math { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0; }
+  .math .katex-display { margin: 0.3em 0; text-align: left; }
+  .math .katex-display > .katex { text-align: left; }
+  .math-in { font-size: 1.3rem; color: var(--muted); }
+  .math-out { font-size: 1.75rem; color: var(--ink); }
+  .note { margin: 0.5rem 0 0; color: var(--muted); }
+  .copy {
+    margin-top: 0.9rem; padding: 0.45rem 0.9rem;
+    font: 600 0.95rem var(--sans); color: var(--ink);
+    background: transparent; border: 1.5px solid var(--ink); border-radius: 8px; cursor: pointer;
+  }
+  .copy:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .err {
+    margin: 0; padding: 0.8rem 1rem;
+    background: var(--field);
+    border-left: 4px solid var(--red);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .result.fresh { animation: write 0.35s ease-out; }
+    @keyframes write { from { opacity: 0; } to { opacity: 1; } }
+  }
+
+  /* Ayuda y pie */
+  details { margin: 2.5rem 0 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  details ul { margin: 0.75rem 0 0; padding-left: 1.2rem; }
+  details li { margin: 0.25rem 0; }
+  code { font: 500 0.95em var(--mono); }
+  .foot { margin: 2rem 0 0; font-size: 0.9rem; color: var(--muted); max-width: 36rem; }
+
+  @media (max-width: 30rem) {
+    .seg label { padding: 0.65rem 0.25rem; font-size: 0.95rem; }
+    .fx input { font-size: 1.15rem; }
+    .math-out { font-size: 1.45rem; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Derivadas e integrales</h1>
+  <p class="lead">Escribí una función de x y calculá su derivada o su integral. El resultado sale escrito en notación matemática.</p>
+
+  <form id="calc" autocomplete="off" novalidate>
+    <fieldset>
+      <legend class="sr-only">Qué querés calcular</legend>
+      <div class="seg">
+        <div><input type="radio" name="op" id="op-diff" value="diff" checked><label for="op-diff">Derivada</label></div>
+        <div><input type="radio" name="op" id="op-int" value="int"><label for="op-int">Integral indefinida</label></div>
+        <div><input type="radio" name="op" id="op-defint" value="defint"><label for="op-defint">Integral definida</label></div>
+      </div>
+    </fieldset>
+
+    <div class="fx">
+      <span aria-hidden="true">f(x) =</span>
+      <input id="expr" type="text" aria-label="Función de x" placeholder="x^2*sin(x)"
+             autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="200" required>
+    </div>
+
+    <div class="opts" id="opts">
+      <label class="opt" id="order-wrap">Orden
+        <input id="order" type="number" min="1" max="5" step="1" value="1" inputmode="numeric">
+      </label>
+      <label class="opt" id="from-wrap" hidden>Desde
+        <input id="from" type="text" value="0" autocapitalize="off" spellcheck="false" maxlength="60">
+      </label>
+      <label class="opt" id="to-wrap" hidden>Hasta
+        <input id="to" type="text" value="1" autocapitalize="off" spellcheck="false" maxlength="60">
+      </label>
+    </div>
+
+    <button class="go" id="go" type="submit">Calcular</button>
+  </form>
+
+  <section class="result" id="result" aria-live="polite" hidden>
+    <div class="math math-in" id="math-in"></div>
+    <div class="math math-out" id="math-out"></div>
+    <p class="err" id="err" role="alert" hidden></p>
+    <p class="note" id="note" hidden></p>
+    <button class="copy" id="copy" type="button" hidden>Copiar resultado</button>
+  </section>
+
+  <section class="examples" aria-label="Ejemplos">
+    <p>Probá con un ejemplo:</p>
+    <ul class="chips" id="chips"></ul>
+  </section>
+
+  <details>
+    <summary>Cómo escribir la función</summary>
+    <ul>
+      <li>Potencias: <code>x^2</code>, <code>x^(1/3)</code></li>
+      <li>Producto: <code>2*x</code> o <code>2x</code></li>
+      <li>Funciones: <code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code>, <code>exp(x)</code>, <code>sqrt(x)</code>, <code>abs(x)</code></li>
+      <li>Logaritmo natural: <code>ln(x)</code> (también <code>log(x)</code>)</li>
+      <li>Constantes: <code>pi</code> y <code>e</code>. En los límites, <code>oo</code> es infinito (y <code>-oo</code> menos infinito).</li>
+    </ul>
+  </details>
+
+  <p class="foot">Los cálculos los hace SymPy en el servidor. Algunas integrales no tienen primitiva con funciones elementales; en ese caso la integral definida se aproxima numéricamente.</p>
+</main>
+
+<script>
+(function () {
+  var EXAMPLES = [
+    { op: 'diff',   expr: 'x^2*sin(x)',  verb: 'Derivar' },
+    { op: 'diff',   expr: 'ln(x)/x',     verb: 'Derivar' },
+    { op: 'int',    expr: 'x*e^x',       verb: 'Integrar' },
+    { op: 'int',    expr: '1/(x^2+1)',   verb: 'Integrar' },
+    { op: 'defint', expr: 'e^(-x^2)', a: '-oo', b: 'oo', verb: 'Integrar', tail: ' de -oo a oo' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('calc'), expr = $('expr'), order = $('order'), from = $('from'), to = $('to');
+  var go = $('go'), result = $('result'), mathIn = $('math-in'), mathOut = $('math-out');
+  var err = $('err'), note = $('note'), copy = $('copy');
+  var copyText = '';
+
+  function currentOp() { return form.elements.op.value; }
+
+  function syncOptions() {
+    var op = currentOp();
+    $('opts').hidden = op === 'int';
+    $('order-wrap').hidden = op !== 'diff';
+    $('from-wrap').hidden = op !== 'defint';
+    $('to-wrap').hidden = op !== 'defint';
+  }
+  form.addEventListener('change', function (e) {
+    if (e.target.name === 'op') syncOptions();
+  });
+
+  // Ejemplos
+  var chips = $('chips');
+  EXAMPLES.forEach(function (ex) {
+    var li = document.createElement('li');
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.append(ex.verb + ' ');
+    var code = document.createElement('code');
+    code.textContent = ex.expr;
+    b.append(code);
+    if (ex.tail) b.append(ex.tail);
+    b.addEventListener('click', function () {
+      document.getElementById('op-' + ex.op).checked = true;
+      expr.value = ex.expr;
+      if (ex.a !== undefined) { from.value = ex.a; to.value = ex.b; }
+      syncOptions();
+      form.requestSubmit();
+    });
+    li.append(b);
+    chips.append(li);
+  });
+
+  function render(el, tex, fallback) {
+    if (window.katex) {
+      try { window.katex.render(tex, el, { displayMode: true, throwOnError: false }); return; }
+      catch (e) { /* cae al texto plano */ }
+    }
+    el.textContent = fallback;
+  }
+
+  function reveal() {
+    result.hidden = false;
+    result.classList.remove('fresh');
+    void result.offsetWidth;
+    result.classList.add('fresh');
+  }
+
+  function showError(msg) {
+    mathIn.hidden = true; mathOut.hidden = true;
+    note.hidden = true; copy.hidden = true;
+    err.hidden = false; err.textContent = msg;
+    reveal();
+  }
+
+  function showResult(d) {
+    err.hidden = true;
+    mathIn.hidden = false; mathOut.hidden = false;
+    render(mathIn, d.input_latex, d.input_latex);
+    render(mathOut, (d.approx ? '\\approx ' : '= ') + d.result_latex, '= ' + d.result_text);
+
+    var msg = '';
+    if (d.approx) {
+      msg = 'No hay una primitiva en forma cerrada para esta función: el valor es una aproximación numérica.';
+    } else if (d.numeric && !/^-?\d+(\.\d+)?$/.test(d.result_text)) {
+      msg = 'Valor aproximado: ' + d.numeric;
+    }
+    note.hidden = !msg;
+    note.textContent = msg;
+
+    copyText = d.result_text;
+    copy.hidden = false;
+    copy.textContent = 'Copiar resultado';
+    reveal();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!expr.value.trim()) {
+      showError('Escribí una función de x para calcular.');
+      expr.focus();
+      return;
+    }
+    go.disabled = true;
+    go.textContent = 'Calculando…';
+
+    fetch('/api/calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        op: currentOp(),
+        expr: expr.value,
+        a: from.value,
+        b: to.value,
+        order: order.value
+      }),
+      signal: AbortSignal.timeout(20000)
+    })
+      .then(function (res) {
+        return res.json().catch(function () {
+          return { ok: false, error: 'El servidor tardó demasiado o falló. Probá con una expresión más simple.' };
+        });
+      })
+      .then(function (d) { d.ok ? showResult(d) : showError(d.error || 'No pude resolver esta expresión.'); })
+      .catch(function () { showError('No pude conectar con el servidor. Revisá tu conexión e intentá de nuevo.'); })
+      .finally(function () { go.disabled = false; go.textContent = 'Calcular'; });
+  });
+
+  copy.addEventListener('click', function () {
+    var done = function () {
+      copy.textContent = 'Copiado';
+      setTimeout(function () { copy.textContent = 'Copiar resultado'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(copyText).then(done, function () {});
+    }
+  });
+
+  syncOptions();
+})();
+</script>
+</body>
+</html>
