@@ -5,6 +5,7 @@ POST /api/calc
 """
 import json
 import multiprocessing as mp
+import os
 import re
 from http.server import BaseHTTPRequestHandler
 
@@ -24,6 +25,7 @@ MEM_LIMIT = 1024 ** 3    # memoria virtual máxima del proceso que calcula
 MAX_LEN = 200
 MAX_ORDER = 5
 OPS = ("diff", "int", "defint")
+PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "index.html")
 
 # Real: así abs(x) deriva a sign(x) y sqrt(x^2) da |x|, como se espera en un curso de análisis.
 x = Symbol("x", real=True)
@@ -192,7 +194,24 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_page(self):
+        # Respaldo: si Vercel no sirve public/ por su cuenta, la función entrega la página.
+        try:
+            with open(PAGE, "rb") as fh:
+                body = fh.read()
+        except OSError:
+            self._send(404, {"ok": False, "error": "No se encontró la página."})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self):
+        if self.path.split("?")[0] in ("/", "/index.html"):
+            self._send_page()
+            return
         self._send(405, {"ok": False, "error": "Usá POST con un JSON."})
 
     def do_POST(self):
