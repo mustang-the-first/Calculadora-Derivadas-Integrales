@@ -42,6 +42,11 @@ NAMES = {
     "arcsin": asin, "arccos": acos, "arctan": atan,
     "sinh": sinh, "cosh": cosh, "tanh": tanh,
     "exp": exp, "log": log, "ln": log, "sqrt": sqrt, "abs": Abs,
+    # log(x) y ln(x) son el logaritmo natural; log10(x) es en base 10 y log(x, b) en base b.
+    "log10": lambda u: log(u, 10),
+    # Nombres en castellano.
+    "sen": sin, "tg": tan, "ctg": cot, "cosec": csc, "senh": sinh, "tgh": tanh,
+    "arcsen": asin, "arctg": atan,
 }
 TRANSFORMS = standard_transformations + (convert_xor, implicit_multiplication_application)
 
